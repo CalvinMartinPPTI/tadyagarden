@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Garden of Letters for Sela</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg-1: #f7efe6; --bg-2: #fffaf6; --accent: #b48b6b; --muted:#6b6b6b; --card:#ffffffee;
+      --glass: rgba(255,255,255,0.6);
+      --shadow: 0 10px 30px rgba(16,24,40,0.06);
+      --glow: 0 6px 18px rgba(180,140,107,0.12);
+    }
+    *{box-sizing:border-box}
+   /* GANTI BAGIAN INI */
+    html, body {
+        /* Hapus height: 100% jika ada, ganti jadi min-height */
+        min-height: 100vh; 
+        margin: 0;
+        font-family: Inter, sans-serif;
+        background: linear-gradient(135deg,var(--bg-1),var(--bg-2));
+        
+        /* PENTING: Izinkan scroll browser default */
+        overflow-y: auto; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        padding: 40px 20px; /* Tambah padding biar gak mepet atas bawah */
+    }
+
+    .app {
+        width: 100%;
+        max-width: 1024px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+        position: relative;
+        
+        /* PENTING: Ganti height jadi auto supaya kartu memanjang ke bawah */
+        height: auto !important; 
+        overflow: visible !important; /* Jangan dipotong (hidden) */
+        display: flex;
+        flex-direction: column;
+    }
+
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 20px; padding: 5%;}
+    .title{display:flex; gap:12px; align-items:baseline}
+    h1{font-family: 'Playfair Display', serif; margin:0; font-size:22px; color:#2b2b2b}
+    p.subtitle{margin:0; color:var(--muted); font-size:13px}
+
+    .controls{display:flex; gap:8px; align-items:center}
+    .btn{background:var(--card); border:1px solid rgba(0,0,0,0.06); padding:8px 12px; border-radius:10px; cursor:pointer; font-size:13px; transition: all 0.2s ease;}
+    .btn:hover{background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+    .btn.ghost{background:transparent}
+    
+    .btn{
+  background:var(--card); 
+  border:1px solid rgba(0,0,0,0.06); 
+  
+  /* UKURAN DIBESARKAN */
+  padding:12px 18px;          /* Perbesar padding (ruang internal) */
+  border-radius:12px;         /* Naikkan border radius agar proporsional */
+  font-size:15px;             /* Perbesar ukuran font */
+  
+  cursor:pointer; 
+  transition: all 0.2s ease;  /* Pastikan transisi tetap ada */
+}
+
+/* Tambahan agar Tombol Terlihat di Dark Mode */
+.dark .btn {
+    /* Gunakan warna abu-abu yang sedikit lebih terang dari background body */
+    background: #4a5568;
+    
+    /* Ubah warna teks menjadi putih */
+    color: #ffffff;
+    
+    /* Beri garis tepi agar jelas terlihat */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* GANTI JADI INI */
+.dark .btn.accent {
+    /* PENTING: Menggunakan !important untuk memaksa perubahan warna */
+    background: #4a5568 !important; 
+    color: #ffffff;      
+    border: 1px solid rgba(255, 255, 255, 0.15); 
+    box-shadow: none; 
+}
+
+
+    main {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+        height: auto !important; /* Biarkan isinya mendorong ke bawah */
+        overflow: visible !important;
+    }
+    /* Garden area */
+    .garden-wrap{
+        background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5)); 
+        border-radius:12px; padding:16px; box-shadow:var(--glow);
+        display: flex; flex-direction: column;
+    }
+    
+    /* Scrollable grid area */
+    .grid-container { flex: 1; overflow-y: auto; padding-right: 4px; }
+    
+    .grid{display:grid; grid-template-columns: repeat(5,1fr); gap:12px}
+    .plot{
+        background:rgba(255,255,255,0.95); border-radius:12px; padding:12px; min-height:120px; 
+        display:flex; flex-direction:column; align-items:center; justify-content:center; 
+        cursor:pointer; border:1px solid rgba(0,0,0,0.04); transition:transform .18s ease, box-shadow .18s ease;
+        position: relative;
+    }
+    .plot:hover{transform:translateY(-4px); box-shadow:0 8px 20px rgba(80,60,40,0.08)}
+    .plot .stage{font-size:11px; color:var(--muted); margin-top:8px}
+
+    .pixel-art{width:56px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display'; font-weight:600; font-size: 18px; color: rgba(0,0,0,0.5);}
+
+    /* Sidebar */
+    aside {
+        background: var(--card);
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid rgba(0,0,0,0.04);
+        
+        /* INI KUNCINYA: */
+        display: flex;
+        flex-direction: column; /* Susun ke bawah */
+        height: 100%; /* Paksa tinggi sidebar penuh mengikuti grid di kirinya */
+        max-height: 80vh; /* Jaga agar tidak melebihi layar di desktop */
+        overflow: hidden; /* Sidebar-nya jangan scroll, tapi anaknya yg scroll */
+    }
+    aside h3 {
+        margin: 0 0 8px 0;
+        font-family: 'Playfair Display';
+        font-size: 16px;
+        flex-shrink: 0; /* Jangan menyusut */
+    }
+
+    .note {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 12px;
+        flex-shrink: 0;
+    }
+
+    .fragments {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        
+        /* INI RAHASIANYA: */
+        flex: 1; /* Ambil semua sisa ruang kosong */
+        overflow-y: auto; /* Biarkan cuma bagian ini yang bisa discroll */
+        padding: 2px; /* Sedikit padding agar bayangan tidak terpotong */
+        margin-bottom: 10px; /* Jarak ke footer */
+    }    
+    
+    .frag{
+        background: #fff; padding:10px; border-radius:8px; font-size:14px; 
+        display:flex; align-items:center; justify-content:space-between;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.03);
+        cursor: grab;
+    }
+    .frag:active { cursor: grabbing; }
+
+    .assembled{
+        min-height:80px; border-radius:8px; padding:12px; 
+        background:linear-gradient(180deg, #faf8f7, #ffffff); 
+        border:1px dashed #dcdcdc; margin-top:10px;
+        font-family: 'Playfair Display', serif; font-size: 15px; line-height: 1.5; color: #444;
+    }
+
+    footer.app-foot{margin-top:16px; display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted)}
+
+    .sidebar-footer {
+        flex-shrink: 0; /* Jangan sampai gepeng/terpotong */
+        background: var(--card); /* Opsional: biar teks di belakangnya gak transparan */
+        border-top: 1px solid rgba(0,0,0,0.05); /* Garis pemisah tipis */
+        padding-top: 16px;
+    }
+
+    /* particles */
+    .particles{position:absolute; inset:0; pointer-events:none; z-index: 0;}
+    .particle{position:absolute; width:8px;height:8px;border-radius:50%; background:rgba(180,140,107,0.15); filter:blur(2px)}
+
+    /* typewriter */
+    .typewriter{font-family:Inter; font-weight:500; font-size:14px; color:#2f2f2f; min-height:22px; margin-bottom: 12px;}
+
+    /* dark mode */
+    .dark{--bg-1:#081018; --bg-2:#0b1a25; color:#eee; --card:rgba(15, 23, 31, 0.7); --muted:#8b9bb4;}
+    .dark body{background:none; background-color: var(--bg-1);}
+    .dark .app {background: linear-gradient(180deg, rgba(13,22,30,0.95), rgba(10,18,25,0.9)); box-shadow: 0 10px 40px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.05);}
+    .dark .plot {background: rgba(30,40,50,0.5); border-color: rgba(255,255,255,0.05);}
+    .dark .frag {background: rgba(30,40,50,0.8); color: #ddd;}
+    .dark .assembled {background: rgba(20,30,40,0.5); border-color: rgba(255,255,255,0.1); color: #ccc;}
+    .dark h1 {color: #e0e0e0;}
+    .dark .garden-wrap {background: rgba(255,255,255,0.03);}
+
+        /* Cari bagian ini di paling bawah CSS kamu */
+    /* GANTI SELURUH BLOK MEDIA QUERY INI */
+@media (max-width: 920px) {
+    /* 1. NONAKTIFKAN CENTERING PADA BODY (Ini Kunci Utama Fix) */
+    /* Kita kembalikan body ke perilaku blok normal agar halaman bisa scroll mulus */
+    body {
+        display: block !important; 
+        align-items: unset !important;
+        justify-content: unset !important;
+        padding: 20px; /* Atur ulang padding body */
+    }
+
+    /* 2. Update Layout Utama */
+    .app {
+        /* Hapus height: 90vh/100vh di mobile */
+        height: auto !important; 
+        box-shadow: none; /* Buat borderless di mobile agar terasa lebih native */
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: none;
+    }
+    main {
+        grid-template-columns: 1fr;
+        padding: 12px 16px; /* Tambah padding agar isi tidak mepet */
+    }
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    aside {
+        border: none;
+        background: transparent;
+        padding-bottom: 0;
+        margin-top: 20px;
+        padding: 0 16px; /* Tambah padding agar isi tidak mepet */
+    }
+
+    /* 3. Perbaiki Posisi Footer Fixed (Menggunakan 100vw) */
+    .sidebar-footer {
+        position: fixed;
+        bottom: 0;
+        /* PENTING: Gunakan 100vw untuk memastikan lebar penuh viewport */
+        width: 100vw; 
+        left: 0;
+        right: 0;
+        
+        background: #fff;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        padding: 16px 24px;
+        z-index: 100;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* 4. Kasih ruang kosong di bawah halaman */
+    /* Kita kasih padding ke elemen terakhir di dalam app agar tidak tertutup footer */
+    .app > main > aside {
+        padding-bottom: 200px; /* Beri ruang untuk footer fixed */
+    }
+    
+    .dark .sidebar-footer {
+        background: rgba(15, 23, 31, 0.95);
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .dark body {
+        padding: 0; /* Hapus padding body di dark mode kalau mengganggu */
+    }
+}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="particles" id="particles"></div>
+
+    <header>
+      <div class="title">
+        <div>
+          <h1>Garden of Letters for Sela</h1>
+          <p class="subtitle">A calm space to plant, grow, and receive gentle messages.</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div style="display:flex; gap:8px; align-items:center">
+          <button class="btn" id="newQuote">Love For You</button>
+          <button class="btn ghost" id="toggleTheme">Theme</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="garden-wrap">
+        <div class="typewriter" id="typewriter">Welcome cultivate words with care.</div>
+
+        <div class="grid-container">
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:16px; align-items:center; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px;">
+            <button class="btn accent" id="waterAll">💧 Water All</button>          <div style="font-size:12px; color:var(--muted); margin-left: auto;">
+             Click to grow.
+          </div>
+        </div>
+      </section>
+
+      <aside>
+        <h3>Fragments</h3>
+            <p class="note">Collected words appear here. Drag to reorder.</p>
+            
+            <div class="fragments" id="fragments">
+                </div>
+
+            <div class="sidebar-footer">
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3>Assembled</h3>
+                    <button class="btn ghost" id="copyBtn" style="padding: 4px 8px; font-size: 11px;">Copy</button>
+                </div>
+                
+                <div class="assembled" id="assembled"></div>
+                
+                <div style="display:flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn" id="assembleBtn" style="flex:1">Assemble</button>
+                </div>
+
+                <div style="margin-top: 12px;">
+                    <button class="btn ghost" id="harvestAll" style="width:100%; color: #cfa8a8; font-size: 11px;">Harvest & Reset All</button>
+                </div>
+        </div>
+        </aside>
+    </main>
+
+    <footer class="app-foot">
+      <div>Made with care gentle, private.</div>
+      <div id="date"></div>
+    </footer>
+  </div>
+
+  <script>
+    // ======= Data =======
+    const PLANT_LIBRARY = [
+      { id:'moonflower', label:'Moonflower', colors:['#f6eadf','#f0d9c4','#e6bfa3'], max:4, fragments:["a", "soft", "whisper" ,"for you"] },
+      { id:'star-mint', label:'Star Mint', colors:['#e8fff6','#bbf1dd','#6be4b0'], max:4, fragments:["stay", "gentle", "and" ,"close"] },
+      { id:'dewdrop', label:'Dewdrop Lily', colors:['#fff7ea','#ffd8b3','#ffc285'], max:5, fragments:["today", "you", "grew", "brighter"] },
+      { id:'sage', label:'Sage', colors:['#f3fbf6','#d7f1e4','#b6e5cc'], max:3, fragments:["breathe", "softly"] },
+      { id:'lav', label:'Lavender', colors:['#f8f3ff','#e8ddff','#d6c7ff'], max:4, fragments:["calm", "like", "moonlight"] }
+    ];
+
+    const ROWS = 3, COLS = 5;
+    const STORAGE_KEY = 'garden_letters_v1';
+
+    // ======= State =======
+    let garden = []; // 2D array
+    let revealed = []; // array of fragments shown
+    let dark = false;
+
+    // ======= Helpers =======
+    function makeEmpty(){
+      const a=[]; for(let r=0;r<ROWS;r++){ const row=[]; for(let c=0;c<COLS;c++) row.push(null); a.push(row);} return a;
+    }
+
+    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({garden, revealed, dark})); }
+    function load(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ try{ const p=JSON.parse(raw); garden=p.garden||makeEmpty(); revealed=p.revealed||[]; dark=!!p.dark; }catch(e){ garden=makeEmpty(); revealed=[]; }}else{ garden=makeEmpty(); revealed=[]; }
+    }
+
+    // ======= Init DOM =======
+    const gridEl = document.getElementById('grid');
+    const fragmentsEl = document.getElementById('fragments');
+    const assembledEl = document.getElementById('assembled');
+    const typewriterEl = document.getElementById('typewriter');
+
+    function renderGrid(){
+      gridEl.innerHTML='';
+      for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+          const cell = document.createElement('div'); cell.className='plot';
+          const p = garden[r][c];
+          if(!p){
+            cell.innerHTML = `<div style="text-align:center;color:#bdbdbd; font-size:12px;">Empty<br><small style='color:var(--muted); font-size:10px;'>click</small></div>`;
+            cell.onclick = ()=>plantAt(r,c);
+          } else {
+            const lib = PLANT_LIBRARY.find(x=>x.id===p.type);
+            const color = lib.colors[Math.min(lib.colors.length-1,p.stage)];
+            const art = document.createElement('div'); art.className='pixel-art'; art.style.background = color; art.textContent = lib.label.split(' ').map(s=>s[0]).join('');
+            cell.appendChild(art);
+            const st = document.createElement('div'); st.className='stage'; st.textContent = `stage ${p.stage} / ${lib.max}`; cell.appendChild(st);
+            cell.onclick = ()=>growAt(r,c);
+            cell.oncontextmenu = (e)=>{ e.preventDefault(); harvestAt(r,c); };
+          }
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    // ======= Planting / Growing =======
+    function randomPlant(){ return PLANT_LIBRARY[Math.floor(Math.random()*PLANT_LIBRARY.length)].id; }
+    function plantAt(r,c){
+      garden[r][c] = { type: randomPlant(), stage:0, planted:Date.now() };
+      typeWriterTemporarily('A seed is planted wait, and words will show.');
+      renderGrid(); save();
+    }
+
+    function growAt(r,c){
+      const p = garden[r][c]; if(!p) return; const lib = PLANT_LIBRARY.find(x=>x.id===p.type);
+      if(p.stage < lib.max){ p.stage++; 
+        // reveal fragment
+        const frag = lib.fragments[Math.min(p.stage-1, lib.fragments.length-1)];
+        typeWriterTemporarily(`Grew: "${frag}"`);
+        if(frag && !revealed.includes(frag)){
+          revealed.push(frag); renderFragments();
+        }
+      } else { typeWriterTemporarily('This plant is fully grown.'); }
+      renderGrid(); save();
+    }
+
+    function harvestAt(r,c){
+      const p = garden[r][c]; if(!p) return; garden[r][c]=null; typeWriterTemporarily('Harvested memory kept.'); renderGrid(); save();
+    }
+
+    function waterAll(){ 
+        let grew = false;
+        for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(garden[r][c]){ 
+            const p = garden[r][c]; const lib = PLANT_LIBRARY.find(x=>x.id===p.type);
+            if(p.stage < lib.max) { growAt(r,c); grew=true; }
+        }
+        if(!grew) typeWriterTemporarily('The garden is quiet.');
+    }
+    
+    function harvestAll(){ for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) garden[r][c]=null; typeWriterTemporarily('Harvested all.'); revealed=[]; renderFragments(); assemble(); renderGrid(); save(); }
+
+    // ======= Fragments UI =======
+    function renderFragments(){ 
+        fragmentsEl.innerHTML=''; 
+        if(revealed.length === 0) {
+            fragmentsEl.innerHTML = '<div style="color:var(--muted); font-size:12px; font-style:italic; padding:10px;">No words yet...</div>';
+            return;
+        }
+        
+        revealed.forEach((frag, i)=>{
+            const el = document.createElement('div'); el.className='frag'; el.draggable=true; el.textContent=frag;
+            const btn = document.createElement('button'); btn.textContent='✕'; btn.className='btn'; btn.style.padding='2px 6px'; btn.style.marginLeft='8px'; btn.style.fontSize='10px'; 
+            btn.onclick = (e)=>{ e.stopPropagation(); revealed.splice(i,1); renderFragments(); save(); };
+            el.appendChild(btn);
+            
+            // drag handlers
+            el.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/plain', i); });
+            el.addEventListener('dragover', (e)=>e.preventDefault());
+            el.addEventListener('drop', (e)=>{
+                e.preventDefault(); const from = Number(e.dataTransfer.getData('text/plain')); const to = i; if(from===to) return;
+                const item = revealed.splice(from,1)[0]; revealed.splice(to,0,item); renderFragments(); save();
+            });
+            fragmentsEl.appendChild(el);
+        });
+        assemble(); // Auto assemble on change
+    }
+
+    // ======= Assemble / Copy =======
+    function assemble(){ const s = revealed.join(' '); assembledEl.textContent = s ? capitalize(s) : '...'; }
+    function copyAssembled(){ const t = assembledEl.textContent; if(!t || t==='...') return; navigator.clipboard?.writeText(t); typeWriterTemporarily('Copied to clipboard.'); }
+    function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+    // ======= Typewriter small function =======
+    let ttTimer=null;
+        // Variabel di luar fungsi agar bisa diakses global
+    let typeInterval = null; // Untuk mengontrol loop pengetikan
+    let clearTimer = null;   // Untuk mengontrol waktu hapus teks
+
+    function typeWriterTemporarily(msg){
+        // 1. Hentikan animasi pengetikan yang sedang berjalan (jika ada)
+        if(typeInterval) clearInterval(typeInterval);
+        
+        // 2. Batalkan jadwal penghapusan teks sebelumnya (jika ada)
+        if(clearTimer) clearTimeout(clearTimer);
+
+        // 3. Mulai proses baru
+        typewriterEl.textContent = ''; 
+        const chars = msg.split(''); 
+        let i = 0; 
+        
+        // Simpan ID interval ke variabel global 'typeInterval'
+        typeInterval = setInterval(()=>{ 
+            typewriterEl.textContent += chars[i++] || ''; 
+            
+            // Jika kalimat sudah selesai diketik
+            if(i > chars.length){ 
+                clearInterval(typeInterval); // Stop pengetikan
+                
+                // Tunggu 4 detik, lalu hapus teks (kembali ke judul default)
+                clearTimer = setTimeout(()=>{ 
+                    typewriterEl.textContent = 'Garden of Letters'; 
+                }, 4000); 
+            } 
+        }, 28); 
+    }
+
+    // ======= Quote of the Day generation =======
+    const QUOTE_BANK = [
+        "you make my days feel lighter just by being in them",
+        "your presence calms parts of me I never knew were loud",
+        "loving you teaches me a gentler way to exist",
+        "your smile is the quiet reason my heart steadies",
+        "every small moment with you feels like home",
+        "you don’t try, but you still make everything softer for me",
+        "the way you exist inspires me to be better, slowly, sincerely",
+        "your warmth stays with me long after we part",
+        "i hope you always find peace in knowing you’re cherished",
+        "being close to you feels like stepping into sunlight after rain",
+
+        // NEW batch
+        "you make ordinary moments feel worth remembering",
+        "your voice, even in short words, steadies something deep in me",
+        "i’m always grateful for the version of me that exists when i’m with you",
+        "you don’t see it, but you’re a quiet miracle in my life",
+        "i choose you in small ways, every day, without hesitation",
+        "knowing you exists already makes life kinder to me",
+        "you bring a softness my heart didn’t know it needed",
+        "there’s a calm that only you can pull out of me",
+        "your presence feels like a place i want to rest in",
+        "if my heart could speak, it would say your name softly",
+        "i admire the way you carry yourself, even on hard days",
+        "i fall for you in the details the subtle ones you think no one sees",
+        "your laughter rewrites the heaviness in my chest",
+        "being around you feels like breathing easier",
+        "i care for you in ways that grow deeper without trying",
+        "you’re the softness in a world that often feels sharp",
+        "you make life feel a little less heavy and a lot more meaningful",
+        "the way i look at you is the truth i rarely say out loud",
+        "i hope you know you’re the person i want to show my gentlest parts to",
+        "you’re the warmth i reach for without thinking",
+        "loving you feels like something my heart was built for"
+    ];
+
+    function genQuote(){ 
+        const q = QUOTE_BANK[Math.floor(Math.random()*QUOTE_BANK.length)]; 
+        const words = q.split(' ');
+        revealed = [];
+        for(let i=0;i<words.length;i++){ revealed.push(words[i]); }
+        renderFragments(); assemble(); typeWriterTemporarily('Quote discovered.'); save(); 
+    }
+
+    // ======= Particles (gentle floating) =======
+    const particlesRoot = document.getElementById('particles');
+    function spawnParticles(){ particlesRoot.innerHTML=''; for(let i=0;i<18;i++){ const p = document.createElement('div'); p.className='particle'; const x = Math.random()*100; const y = Math.random()*100; p.style.left = x+'%'; p.style.top = y+'%'; p.style.opacity = (0.2+Math.random()*0.6).toString(); p.style.transform = `scale(${0.6+Math.random()*1.2})`; particlesRoot.appendChild(p);
+      const dur = 8000 + Math.random()*8000; p.animate([{transform:`translateY(0px) rotate(0deg)`},{transform:`translateY(${ -20 - Math.random()*80 }px) rotate(${Math.random()*40}deg)`}],{duration:dur, iterations:Infinity, direction:'alternate', easing:'ease-in-out'});
+    }}
+
+    // ======= Theme =======
+    function applyTheme(){ if(dark) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); save(); }
+    function toggleTheme(){ dark = !dark; applyTheme(); }
+
+    // ======= Init & Event wiring =======
+    document.getElementById('waterAll').onclick = ()=>{ waterAll(); };
+    document.getElementById('harvestAll').onclick = ()=>{ harvestAll(); };
+    document.getElementById('assembleBtn').onclick = ()=>{ assemble(); };
+    document.getElementById('copyBtn').onclick = ()=>{ copyAssembled(); };
+    document.getElementById('newQuote').onclick = ()=>{ genQuote(); };
+    document.getElementById('toggleTheme').onclick = ()=>{ toggleTheme(); };
+
+    function updateDate(){ const d = new Date(); document.getElementById('date').textContent = d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'}); }
+
+    // ======= Load saved and render =======
+    load(); renderGrid(); renderFragments(); applyTheme(); spawnParticles(); updateDate();
+
+    // Auto-grow logic
+    (function autoGrowByDays(){ 
+        const raw = localStorage.getItem(STORAGE_KEY); 
+        if(!raw) return; 
+        try{ 
+            const p = JSON.parse(raw); 
+            if(p && p._lastVisit){ 
+                const last = new Date(p._lastVisit); const now = new Date(); 
+                const days = Math.floor((now - last)/(1000*60*60*24)); 
+                if(days>0){ 
+                    let somethingGrew = false;
+                    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(garden[r][c]){ 
+                        const lib = PLANT_LIBRARY.find(x=>x.id===garden[r][c].type);
+                        if (garden[r][c].stage < lib.max) {
+                            garden[r][c].stage += Math.min(2, days); 
+                            if(garden[r][c].stage > lib.max) garden[r][c].stage = lib.max; 
+                            somethingGrew = true;
+                        }
+                    }
+                    if(somethingGrew) typeWriterTemporarily(`Welcome back your garden grew while you were away.`);
+                }
+            }
+        }catch(e){}
+        // save last visit timestamp
+        const sraw = localStorage.getItem(STORAGE_KEY); let p={}; if(sraw) try{p=JSON.parse(sraw);}catch(e){} p._lastVisit = new Date().toISOString(); localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.assign({},p,{garden, revealed, dark})));
+    })();
+
+    // Double-click to plant shortcut
+    gridEl.addEventListener('dblclick', (e)=>{ 
+        const nodes = Array.from(gridEl.children); 
+        const idx = nodes.indexOf(e.target.closest('.plot')); 
+        if(idx>=0){ 
+            const r = Math.floor(idx/COLS); 
+            const c = idx%COLS; 
+            if(!garden[r][c]){ plantAt(r,c); growAt(r,c); } 
+        }
+    });
+
+  </script>
+</body>
+</html>
